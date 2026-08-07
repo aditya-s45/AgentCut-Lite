@@ -46,17 +46,7 @@ export const useTimelineStore = create<TimelineState>((set) => ({
   fps: 30,
   width: 1280,
   height: 720,
-  clips: [
-    // Add a default background or video just to have something
-    {
-      id: 'bg-1',
-      type: 'video',
-      startFrame: 0,
-      durationInFrames: 300,
-      trackIndex: 0,
-      url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
-    }
-  ],
+  clips: [],
   
   addClip: (clip) => set((state) => ({ clips: [...state.clips, clip] })),
   updateClip: (id, updates) => set((state) => ({
