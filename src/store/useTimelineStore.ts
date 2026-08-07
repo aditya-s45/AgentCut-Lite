@@ -54,7 +54,7 @@ export const useTimelineStore = create<TimelineState>((set) => ({
       startFrame: 0,
       durationInFrames: 300,
       trackIndex: 0,
-      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+      url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
     }
   ],
   

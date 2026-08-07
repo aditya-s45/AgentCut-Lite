@@ -8,6 +8,7 @@ import { Send, Bot, User } from 'lucide-react';
 export const Chat = () => {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     api: '/api/chat',
+    maxSteps: 5,
   });
   
   const { addClip, updateClip, removeClip, clips } = useTimelineStore();
@@ -89,7 +90,7 @@ export const Chat = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="p-3 bg-[#1a1a1a] border-t border-white/10 flex gap-2">
+      <form onSubmit={(e) => { e.preventDefault(); handleSubmit(e); }} className="p-3 bg-[#1a1a1a] border-t border-white/10 flex gap-2">
         <input
           className="flex-1 bg-black border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ef7438]/50"
           value={input}
