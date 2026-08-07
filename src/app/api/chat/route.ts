@@ -42,5 +42,5 @@ Be friendly and concise. Confirm what you are doing.`,
     },
   });
 
-  return result.toDataStreamResponse();
+  return result.toAIStreamResponse();
 }
