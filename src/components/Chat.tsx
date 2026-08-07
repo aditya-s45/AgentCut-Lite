@@ -2,14 +2,16 @@
 
 import { useChat } from '@ai-sdk/react';
 import { useTimelineStore, TextClip, VideoClip } from '../store/useTimelineStore';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Send, Bot, User } from 'lucide-react';
 
 export const Chat = () => {
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
+  const { messages, append } = useChat({
     api: '/api/chat',
     maxSteps: 5,
   });
+  
+  const [input, setInput] = useState('');
   
   const { addClip, updateClip, removeClip, clips } = useTimelineStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -90,11 +92,16 @@ export const Chat = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={(e) => { e.preventDefault(); handleSubmit(e); }} className="p-3 bg-[#1a1a1a] border-t border-white/10 flex gap-2">
+      <form onSubmit={(e) => { 
+        e.preventDefault(); 
+        if (!input.trim()) return;
+        append({ role: 'user', content: input });
+        setInput('');
+      }} className="p-3 bg-[#1a1a1a] border-t border-white/10 flex gap-2">
         <input
           className="flex-1 bg-black border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ef7438]/50"
           value={input}
-          onChange={handleInputChange}
+          onChange={(e) => setInput(e.target.value)}
           placeholder="E.g., Add a red title saying 'Subscribe' at 2s"
         />
         <button 
