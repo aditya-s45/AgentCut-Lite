@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   const { messages } = await req.json();
 
   const result = await streamText({
-    model: groq('llama-3.1-70b-versatile'),
+    model: groq('llama3-70b-8192'),
     system: `You are AgentCut Lite, a video editing assistant. You help users edit a video timeline. 
 You can add text clips and apply filters to the video. The video is 10 seconds long (300 frames) and runs at 30 fps.
 When a user asks to add something at 'N seconds', multiply N by 30 to get the start frame. 
