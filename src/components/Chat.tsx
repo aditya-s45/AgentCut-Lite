@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Send, Bot, User } from 'lucide-react';
 
 export const Chat = () => {
-  const { messages, append } = useChat({
+  const { messages, sendMessage } = useChat({
     api: '/api/chat',
     maxSteps: 5,
   });
@@ -95,7 +95,7 @@ export const Chat = () => {
       <form onSubmit={(e) => { 
         e.preventDefault(); 
         if (!input.trim()) return;
-        append({ role: 'user', content: input });
+        sendMessage({ role: 'user', content: input });
         setInput('');
       }} className="p-3 bg-[#1a1a1a] border-t border-white/10 flex gap-2">
         <input
