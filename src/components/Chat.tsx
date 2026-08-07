@@ -1,6 +1,6 @@
 'use client';
 
-import { useChat } from '@ai-sdk/react';
+import { useChat } from 'ai/react';
 import { useTimelineStore, TextClip, VideoClip } from '../store/useTimelineStore';
 import { useEffect, useRef } from 'react';
 import { Send, Bot, User } from 'lucide-react';
