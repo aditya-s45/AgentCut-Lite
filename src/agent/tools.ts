@@ -10,14 +10,8 @@ export const getClientSideTools = () => {
 
   return {
     addTextClip: tool({
-      description: 'Add a text clip to the video timeline',
-      parameters: z.object({
-        text: z.string().describe('The text to display'),
-        startFrame: z.number().describe('Start frame of the clip (30 frames = 1 second)'),
-        durationInFrames: z.number().describe('Duration of the clip in frames (30 frames = 1 second)'),
-        color: z.string().optional().describe('Color of the text (e.g., "red", "#ffffff")'),
-        fontSize: z.number().optional().describe('Font size in pixels'),
-      }),
+      description: 'Add a text clip to the video timeline. You must provide a JSON object with: text (string), startFrame (number), durationInFrames (number), color (string, optional), fontSize (number, optional).',
+      parameters: z.object({}).catchall(z.any()),
       execute: async (args) => {
         store.addClip({
           id: `text-${Date.now()}`,
@@ -34,10 +28,8 @@ export const getClientSideTools = () => {
     }),
     
     applyFilter: tool({
-      description: 'Apply a CSS filter to the main video clip',
-      parameters: z.object({
-        filter: z.string().describe('CSS filter string (e.g., "grayscale(100%)", "blur(5px)")'),
-      }),
+      description: 'Apply a CSS filter to the main video clip. You must provide a JSON object with: filter (string) e.g., "grayscale(100%)", "blur(5px)".',
+      parameters: z.object({}).catchall(z.any()),
       execute: async (args) => {
         const videoClip = store.clips.find(c => c.type === 'video');
         if (videoClip) {
