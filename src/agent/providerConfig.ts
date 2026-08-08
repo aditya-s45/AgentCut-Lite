@@ -16,6 +16,7 @@ export const getProviderInstance = (provider: LlmProvider) => {
     const openai = createOpenAI({
       baseURL: PROXY_API_BASE,
       apiKey: PROXY_KEY,
+      compatibility: 'compatible',
     });
     // Force the /chat/completions endpoint which Groq requires, 
     // instead of the default /responses endpoint.
