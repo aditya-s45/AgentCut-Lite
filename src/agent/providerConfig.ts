@@ -1,27 +1,23 @@
-// Simplified provider config matching OpenChatCut's dynamic selection structure
 import { createOpenAI } from '@ai-sdk/openai';
+import type { LanguageModelV1 } from '@ai-sdk/provider';
 
-export type LlmProvider = 'groq' | 'openai' | 'anthropic';
+export type LlmProvider = 'groq' | 'anthropic' | 'openai';
 
-// Since this is a local app, we will use Vite env vars for the default key
-// In a full implementation, we'd read this from localStorage or Electron secure store
-const DEFAULT_GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY || '';
+// Instead of passing the real API key to the browser, we pass a dummy key.
+// The Vite backend proxy (server/plugins/llm-proxy.ts) will intercept the request
+// and inject the REAL api key securely. This prevents the browser from ever knowing the key.
+const PROXY_KEY = 'proxy-injects-the-real-key';
+const PROXY_API_BASE = '/llm';
 
-export const PROVIDER: LlmProvider = 'groq';
-
-export function getProviderInstance(provider: LlmProvider = PROVIDER) {
+export const getProviderInstance = (provider: LlmProvider) => {
   if (provider === 'groq') {
+    // We use OpenAI compatible since Groq is OpenAI compatible. 
+    // The baseURL points to OUR LOCAL PROXY, not Groq!
     return createOpenAI({
-      baseURL: 'https://api.groq.com/openai/v1',
-      apiKey: DEFAULT_GROQ_KEY,
+      baseURL: PROXY_API_BASE,
+      apiKey: PROXY_KEY,
     });
   }
   
-  if (provider === 'openai') {
-    return createOpenAI({
-      apiKey: 'test-key',
-    });
-  }
-  
-  throw new Error(`Unsupported provider: ${provider}`);
-}
+  throw new Error(`Provider ${provider} is not configured yet.`);
+};

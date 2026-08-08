@@ -33,7 +33,7 @@ export function useAgent() {
     setIsLoading(true);
 
     const activeModel = getActiveAgentModelChoice();
-    const provider = getProviderInstance(activeModel.provider);
+    const providerInstance = getProviderInstance(activeModel.provider);
     
     // Add empty assistant message to append to
     const assistantId = (Date.now() + 1).toString();
@@ -41,7 +41,7 @@ export function useAgent() {
 
     try {
       const result = await streamText({
-        model: provider(activeModel.requestModel),
+        model: providerInstance(activeModel.requestModel),
         messages: coreMessagesRef.current,
         system: `You are AgentCut Pro, a powerful AI video editing agent running entirely on the client side. 
         You control a timeline. The user will ask you to edit a video. 

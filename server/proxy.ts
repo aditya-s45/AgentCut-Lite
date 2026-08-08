@@ -1,0 +1,96 @@
+import { request as httpRequest, type IncomingMessage, type ServerResponse } from 'node:http';
+import { request as httpsRequest } from 'node:https';
+
+type Middleware = (req: IncomingMessage, res: ServerResponse, next: () => void) => unknown;
+
+const HOP_BY_HOP = new Set(['host', 'connection', 'keep-alive', 'proxy-authorization', 'proxy-connection', 'transfer-encoding', 'upgrade', 'te', 'trailer']);
+
+const NEVER_FORWARD: Record<string, true> = {
+  'x-openchatcut-provider': true,
+  cookie: true,
+};
+
+export interface ProxyRoute {
+  target: (req: IncomingMessage) => string;
+  headers: (req: IncomingMessage) => Record<string, string>;
+  forceJsonContentType?: boolean;
+  errorMessage?: (status: number, req: IncomingMessage) => string;
+}
+
+export function proxyMiddleware(route: ProxyRoute): Middleware {
+  return (req, res) => {
+    let target: URL;
+    try {
+      target = new URL(route.target(req));
+    } catch {
+      res.writeHead(502, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'proxy target is not a valid URL' }));
+      return;
+    }
+    const headers: Record<string, string | string[]> = {};
+    for (const [k, v] of Object.entries(req.headers)) {
+      if (!HOP_BY_HOP.has(k.toLowerCase()) && !NEVER_FORWARD[k.toLowerCase()] && v !== undefined) {
+        headers[k] = v;
+      }
+    }
+    headers.host = target.host;
+    for (const [k, v] of Object.entries(route.headers(req))) if (v) headers[k] = v;
+
+    const basePath = target.pathname.replace(/\/$/, '');
+    const rawUrl = req.url ?? '/';
+    const queryAt = rawUrl.indexOf('?');
+    const requestPath = queryAt === -1 ? rawUrl : rawUrl.slice(0, queryAt);
+    const search = new URLSearchParams(target.search);
+    if (queryAt !== -1) {
+      for (const [name, value] of new URLSearchParams(rawUrl.slice(queryAt + 1))) {
+        search.append(name, value);
+      }
+    }
+    const query = search.size > 0 ? `?${search.toString()}` : '';
+    const doRequest = target.protocol === 'http:' ? httpRequest : httpsRequest;
+    
+    const upstream = doRequest({
+      host: target.hostname,
+      port: target.port || (target.protocol === 'http:' ? 80 : 443),
+      method: req.method,
+      path: basePath + requestPath + query,
+      headers,
+    }, (upRes) => {
+      const status = upRes.statusCode ?? 502;
+      if (status >= 400 && route.errorMessage) {
+        const chunks: Buffer[] = [];
+        upRes.on('data', (chunk) => chunks.push(chunk));
+        upRes.on('end', () => {
+          const body = Buffer.concat(chunks).toString('utf8').slice(0, 2000);
+          console.warn(`[proxy] upstream ${status} for ${target.host}${basePath}${requestPath} · ${body}`);
+        });
+        res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+        res.end(JSON.stringify({ error: { message: route.errorMessage(status, req) } }));
+        return;
+      }
+      const outHeaders: Record<string, string | string[]> = {};
+      for (const [k, v] of Object.entries(upRes.headers)) {
+        if (!HOP_BY_HOP.has(k.toLowerCase()) && v !== undefined) outHeaders[k] = v;
+      }
+      if (route.forceJsonContentType) {
+        const ct = String(outHeaders['content-type'] ?? '');
+        if (!ct.includes('application/json') && !ct.includes('text/event-stream')) {
+          outHeaders['content-type'] = 'application/json';
+        }
+      }
+      res.writeHead(status, outHeaders);
+      upRes.pipe(res);
+    });
+
+    upstream.on('error', (err) => {
+      if (!res.headersSent) {
+        res.writeHead(502, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: `upstream request failed: ${err.message}` }));
+      } else if (!res.writableEnded) {
+        res.end();
+      }
+    });
+    res.on('close', () => upstream.destroy());
+    req.pipe(upstream);
+  };
+}
