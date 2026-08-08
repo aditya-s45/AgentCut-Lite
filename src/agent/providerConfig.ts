@@ -1,4 +1,4 @@
-import { createOpenAI } from '@ai-sdk/openai';
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import type { LanguageModelV1 } from '@ai-sdk/provider';
 
 export type LlmProvider = 'groq' | 'anthropic' | 'openai';
@@ -13,14 +13,12 @@ export const getProviderInstance = (provider: LlmProvider) => {
   if (provider === 'groq') {
     // We use OpenAI compatible since Groq is OpenAI compatible. 
     // The baseURL points to OUR LOCAL PROXY, not Groq!
-    const openai = createOpenAI({
+    const openaiCompatible = createOpenAICompatible({
       baseURL: PROXY_API_BASE,
       apiKey: PROXY_KEY,
-      compatibility: 'compatible',
+      name: 'groq',
     });
-    // Force the /chat/completions endpoint which Groq requires, 
-    // instead of the default /responses endpoint.
-    return openai.chat;
+    return openaiCompatible.chat;
   }
   
   throw new Error(`Provider ${provider} is not configured yet.`);

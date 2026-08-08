@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.36",
+    "@ai-sdk/openai-compatible": "^3.0.27",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@remotion/player": "^4.0.507",
     "ai": "^7.0.58",
