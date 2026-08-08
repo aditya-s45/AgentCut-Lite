@@ -6,10 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Send, Bot, User } from 'lucide-react';
 
 export const Chat = () => {
-  const { messages, sendMessage } = useChat({
-    api: '/api/chat',
-    maxSteps: 5,
-  });
+  const { messages, sendMessage, addToolResult } = useChat();
   
   const [input, setInput] = useState('');
   
@@ -25,37 +22,45 @@ export const Chat = () => {
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
     
-    if (lastMessage?.role === 'assistant' && lastMessage.toolInvocations) {
-      lastMessage.toolInvocations.forEach((toolInvocation) => {
-        if (toolInvocation.state === 'result') return; // already executed
-        
-        // Execute the tool locally
-        if (toolInvocation.toolName === 'addTextClip') {
-          const { text, startFrame, durationInFrames, color, fontSize } = toolInvocation.args;
-          const newClip: TextClip = {
-            id: `text-${Date.now()}`,
-            type: 'text',
-            trackIndex: 1,
-            text,
-            startFrame,
-            durationInFrames,
-            color: color || 'white',
-            fontSize: fontSize || 60,
-          };
-          addClip(newClip);
-        }
-        
-        if (toolInvocation.toolName === 'applyFilter') {
-          const { filter } = toolInvocation.args;
-          // Apply to the first video clip for simplicity
-          const videoClip = clips.find(c => c.type === 'video');
-          if (videoClip) {
-            updateClip(videoClip.id, { filter });
+    if (lastMessage?.role === 'assistant') {
+      const partsToProcess = lastMessage.parts || [];
+      // Handle AI SDK 4/7 parts array
+      partsToProcess.forEach((part: any) => {
+        if (part.type?.startsWith('tool-') || ('toolName' in part) || ('toolInvocation' in part)) {
+          const toolInvocation = part.toolInvocation || part;
+          if (toolInvocation.state === 'result') return; // already executed
+          
+          const toolName = toolInvocation.toolName || toolInvocation.name;
+          const args = toolInvocation.args || toolInvocation.arguments;
+          
+          if (toolName === 'addTextClip') {
+            const { text, startFrame, durationInFrames, color, fontSize } = args;
+            const newClip: TextClip = {
+              id: `text-${Date.now()}`,
+              type: 'text',
+              trackIndex: 1,
+              text,
+              startFrame,
+              durationInFrames,
+              color: color || 'white',
+              fontSize: fontSize || 60,
+            };
+            addClip(newClip);
+            if (addToolResult) addToolResult({ toolCallId: toolInvocation.toolCallId || toolInvocation.id, tool: toolName, output: 'Success' } as any);
+          }
+          
+          if (toolName === 'applyFilter') {
+            const { filter } = args;
+            const videoClip = clips.find(c => c.type === 'video');
+            if (videoClip) {
+              updateClip(videoClip.id, { filter });
+            }
+            if (addToolResult) addToolResult({ toolCallId: toolInvocation.toolCallId || toolInvocation.id, tool: toolName, output: 'Success' } as any);
           }
         }
       });
     }
-  }, [messages, addClip, updateClip, clips]);
+  }, [messages, addClip, updateClip, clips, addToolResult]);
 
   return (
     <div className="flex flex-col h-full bg-[#111] border border-white/10 rounded-lg overflow-hidden">
@@ -73,19 +78,31 @@ export const Chat = () => {
               {m.role === 'user' ? <User size={16} /> : <Bot size={16} className="text-[#ef7438]" />}
             </div>
             
-            <div className={`max-w-[80%] rounded-lg p-3 text-sm ${
+            <div className={`max-w-[80%] rounded-lg p-3 text-sm flex flex-col gap-2 ${
               m.role === 'user' 
                 ? 'bg-blue-600 text-white' 
                 : 'bg-[#222] text-white/80 border border-white/10'
             }`}>
-              {m.content}
-              
-              {/* Display Tool Executions */}
-              {m.toolInvocations?.map((tool) => (
-                <div key={tool.toolCallId} className="mt-2 text-xs font-mono bg-black/40 p-2 rounded border border-white/5 text-[#ef7438]">
-                  &gt; Executing {tool.toolName}({JSON.stringify(tool.args)})
-                </div>
-              ))}
+              {/* Render parts instead of content */}
+              {m.parts ? m.parts.map((part, i) => {
+                if (part.type === 'text') {
+                  return <div key={i}>{part.text}</div>;
+                }
+                
+                if (part.type?.startsWith('tool-') || ('toolName' in part) || ('toolInvocation' in part)) {
+                  const tool = (part as any).toolInvocation || part;
+                  return (
+                    <div key={i} className="text-xs font-mono bg-black/40 p-2 rounded border border-white/5 text-[#ef7438]">
+                      &gt; Executing {tool.toolName || tool.name}({JSON.stringify(tool.args || tool.arguments)})
+                      <br/>
+                      <span className="text-gray-500 opacity-50">Debug: {JSON.stringify(part)}</span>
+                    </div>
+                  );
+                }
+                return null;
+              }) : (
+                <div className="italic text-gray-500">Processing...</div>
+              )}
             </div>
           </div>
         ))}
@@ -95,7 +112,8 @@ export const Chat = () => {
       <form onSubmit={(e) => { 
         e.preventDefault(); 
         if (!input.trim()) return;
-        sendMessage({ role: 'user', content: input });
+        // AI SDK 7 expects parts for user messages, or a string for simple text messages
+        sendMessage({ role: 'user', parts: [{ type: 'text', text: input }] } as any);
         setInput('');
       }} className="p-3 bg-[#1a1a1a] border-t border-white/10 flex gap-2">
         <input
