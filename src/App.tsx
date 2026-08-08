@@ -1,5 +1,6 @@
 import VideoPlayer from './components/VideoPlayer';
 import Timeline from './components/Timeline';
+import ChatSidebar from './components/ChatSidebar';
 import { Layers } from 'lucide-react';
 
 function App() {
@@ -17,24 +18,30 @@ function App() {
           </h1>
         </div>
         <div className="text-xs text-neutral-500 font-medium px-2 py-1 bg-neutral-800 rounded-md">
-          Phase 2: Core Video Engine
+          Phase 3: The AI Brain
         </div>
       </header>
 
       {/* Main Workspace */}
-      <main className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex min-h-0">
         
-        {/* Top: Video Player & Controls */}
-        <div className="flex-1 flex flex-col p-6 overflow-y-auto">
-          <VideoPlayer />
-        </div>
+        {/* Editor Area */}
+        <main className="flex-1 flex flex-col min-w-0">
+          {/* Top: Video Player & Controls */}
+          <div className="flex-1 flex flex-col p-6 overflow-y-auto">
+            <VideoPlayer />
+          </div>
 
-        {/* Bottom: Timeline */}
-        <div className="h-72 border-t border-neutral-800 flex-shrink-0 bg-neutral-900 shadow-2xl">
-          <Timeline />
-        </div>
+          {/* Bottom: Timeline */}
+          <div className="h-72 border-t border-neutral-800 flex-shrink-0 bg-neutral-900 shadow-2xl z-10 relative">
+            <Timeline />
+          </div>
+        </main>
+
+        {/* Sidebar */}
+        <ChatSidebar />
         
-      </main>
+      </div>
     </div>
   );
 }

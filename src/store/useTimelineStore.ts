@@ -38,7 +38,7 @@ export const useTimelineStore = create<TimelineState>((set) => ({
       trackIndex: 0,
       startFrame: 0,
       durationInFrames: 300,
-      src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+      src: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/f/f1/Sintel_movie_4K.webm/Sintel_movie_4K.webm.1080p.vp9.webm'
     }
   ],
   addClip: (clip) =>

@@ -1,6 +1,9 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import * as dotenv from 'dotenv';
+
+dotenv.config(); // Load .env from root
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

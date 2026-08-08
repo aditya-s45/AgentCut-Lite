@@ -1,4 +1,4 @@
-import { useTimelineStore, TimelineClip } from '../store/useTimelineStore';
+import { useTimelineStore, type TimelineClip } from '../store/useTimelineStore';
 import { Film, Type, Music, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';

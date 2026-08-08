@@ -35,6 +35,7 @@ export default function VideoPlayer() {
           controls={true}
           autoPlay={false}
           loop
+          acknowledgeRemotionLicense
         />
       </div>
       
