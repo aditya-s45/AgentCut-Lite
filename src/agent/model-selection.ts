@@ -1,4 +1,4 @@
-import { LlmProvider } from './providerConfig';
+import { type LlmProvider } from './providerConfig';
 
 export interface AgentModelChoice {
   id: string;
