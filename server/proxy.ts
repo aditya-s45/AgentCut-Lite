@@ -57,6 +57,8 @@ export function proxyMiddleware(route: ProxyRoute): Middleware {
       headers,
     }, (upRes) => {
       const status = upRes.statusCode ?? 502;
+      console.log(`[proxy] Upstream returned status ${status} for ${req.method} ${target.host}${basePath}${requestPath}`);
+      
       if (status >= 400 && route.errorMessage) {
         const chunks: Buffer[] = [];
         upRes.on('data', (chunk) => chunks.push(chunk));

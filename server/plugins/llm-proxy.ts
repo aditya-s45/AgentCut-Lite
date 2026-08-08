@@ -1,6 +1,6 @@
 import type { IncomingMessage } from 'node:http';
 import type { Plugin } from 'vite';
-import { proxyMiddleware } from '../proxy';
+import { proxyMiddleware } from '../proxy.ts';
 import * as dotenv from 'dotenv';
 dotenv.config(); // Ensure env is loaded in the node process
 
@@ -30,12 +30,15 @@ export function llmProxyPlugin(): Plugin {
   return {
     name: 'openchatcut-llm-proxy',
     configureServer(server) {
-      server.middlewares.use('/llm', proxyMiddleware({
-        target: llmTarget,
-        headers: llmHeaders,
-        forceJsonContentType: true,
-        errorMessage: llmErrorMessage,
-      }));
+      server.middlewares.use('/llm', (req, res, next) => {
+        console.log(`[llm-proxy] Intercepted ${req.method} request to /llm${req.url}`);
+        proxyMiddleware({
+          target: llmTarget,
+          headers: llmHeaders,
+          forceJsonContentType: true,
+          errorMessage: llmErrorMessage,
+        })(req, res, next);
+      });
     },
   };
 }

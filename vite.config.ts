@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import electron from 'vite-plugin-electron/simple'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
-import { llmProxyPlugin } from './server/plugins/llm-proxy'
+import { llmProxyPlugin } from './server/plugins/llm-proxy.ts'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -24,7 +24,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(import.meta.dirname, './src'),
     },
   },
 })
