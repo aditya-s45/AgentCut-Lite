@@ -18,7 +18,7 @@ export const getProviderInstance = (provider: LlmProvider) => {
       apiKey: PROXY_KEY,
       name: 'groq',
     });
-    return openaiCompatible.chat;
+    return openaiCompatible;
   }
   
   throw new Error(`Provider ${provider} is not configured yet.`);
