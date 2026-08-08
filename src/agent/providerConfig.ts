@@ -7,7 +7,7 @@ export type LlmProvider = 'groq' | 'anthropic' | 'openai';
 // The Vite backend proxy (server/plugins/llm-proxy.ts) will intercept the request
 // and inject the REAL api key securely. This prevents the browser from ever knowing the key.
 const PROXY_KEY = 'proxy-injects-the-real-key';
-const PROXY_API_BASE = '/llm';
+const PROXY_API_BASE = typeof window !== 'undefined' ? `${window.location.origin}/llm` : 'http://localhost:5173/llm';
 
 export const getProviderInstance = (provider: LlmProvider) => {
   if (provider === 'groq') {
